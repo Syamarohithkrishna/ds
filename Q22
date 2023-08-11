@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_NODES 100
+
+// Stack structure for DFS
+struct Stack {
+    int items[MAX_NODES];
+    int top;
+};
+
+// Initialize the stack
+void initializeStack(struct Stack* stack) {
+    stack->top = -1;
+}
+
+// Check if the stack is empty
+int isStackEmpty(struct Stack* stack) {
+    return stack->top == -1;
+}
+
+// Push an item onto the stack
+void push(struct Stack* stack, int value) {
+    if (stack->top == MAX_NODES - 1) {
+        printf("Stack is full. Cannot push.\n");
+        return;
+    }
+
+    stack->items[++stack->top] = value;
+}
+
+// Pop an item from the stack
+int pop(struct Stack* stack) {
+    if (isStackEmpty(stack)) {
+        printf("Stack is empty. Cannot pop.\n");
+        return -1;
+    }
+
+    return stack->items[stack->top--];
+}
+
+// Graph structure
+struct Graph {
+    int vertices;
+    int** adjMatrix;
+};
+
+// Create a new graph with 'vertices' vertices
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->vertices = vertices;
+
+    // Allocate memory for adjacency matrix
+    graph->adjMatrix = (int**)malloc(vertices * sizeof(int*));
+    for (int i = 0; i < vertices; i++) {
+        graph->adjMatrix[i] = (int*)malloc(vertices * sizeof(int));
+        for (int j = 0; j < vertices; j++) {
+            graph->adjMatrix[i][j] = 0;
+        }
+    }
+
+    return graph;
+}
+
+// Add an edge between two vertices
+void addEdge(struct Graph* graph, int src, int dest) {
+    graph->adjMatrix[src][dest] = 1;
+    graph->adjMatrix[dest][src] = 1;
+}
+
+// Depth-First Search traversal of the graph
+void dfs(struct Graph* graph, int startVertex) {
+    int visited[MAX_NODES] = {0};
+    struct Stack stack;
+    initializeStack(&stack);
+
+    visited[startVertex] = 1;
+    printf("Depth-First Traversal starting from vertex %d: ", startVertex);
+    printf("%d ", startVertex);
+    push(&stack, startVertex);
+
+    while (!isStackEmpty(&stack)) {
+        int currentVertex = pop(&stack);
+
+        for (int i = 0; i < graph->vertices; i++) {
+            if (graph->adjMatrix[currentVertex][i] == 1 && !visited[i]) {
+                printf("%d ", i);
+                visited[i] = 1;
+                push(&stack, i);
+            }
+        }
+    }
+
+    printf("\n");
+}
+
+int main() {
+    int vertices, edges;
+    printf("Enter the number of vertices: ");
+    scanf("%d", &vertices);
+
+    struct Graph* graph = createGraph(vertices);
+
+    printf("Enter the number of edges: ");
+    scanf("%d", &edges);
+
+    printf("Enter the edges (format: source destination):\n");
+    for (int i = 0; i < edges; i++) {
+        int src, dest;
+        scanf("%d %d", &src, &dest);
+        addEdge(graph, src, dest);
+    }
+
+    int startVertex;
+    printf("Enter the starting vertex for DFS traversal: ");
+    scanf("%d", &startVertex);
+
+    dfs(graph, startVertex);
+
+    return 0;
+}
