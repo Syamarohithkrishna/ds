@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX_NODES 100
+
+struct Graph {
+    int vertices;
+    int** adjMatrix;
+};
+
+// Create a new graph with 'vertices' vertices
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->vertices = vertices;
+
+    // Allocate memory for adjacency matrix
+    graph->adjMatrix = (int**)malloc(vertices * sizeof(int*));
+    for (int i = 0; i < vertices; i++) {
+        graph->adjMatrix[i] = (int*)malloc(vertices * sizeof(int));
+        for (int j = 0; j < vertices; j++) {
+            graph->adjMatrix[i][j] = 0;
+        }
+    }
+
+    return graph;
+}
+
+// Add an edge between two vertices with weight
+void addEdge(struct Graph* graph, int src, int dest, int weight) {
+    graph->adjMatrix[src][dest] = weight;
+    graph->adjMatrix[dest][src] = weight;
+}
+
+// Find the vertex with the minimum distance value
+int minDistance(int dist[], int visited[], int vertices) {
+    int min = INT_MAX;
+    int minIndex = -1;
+
+    for (int v = 0; v < vertices; v++) {
+        if (!visited[v] && dist[v] <= min) {
+            min = dist[v];
+            minIndex = v;
+        }
+    }
+
+    return minIndex;
+}
+
+// Print the shortest path from source to vertex
+void printPath(int parent[], int vertex) {
+    if (parent[vertex] == -1) {
+        printf("%d ", vertex);
+        return;
+    }
+
+    printPath(parent, parent[vertex]);
+    printf("%d ", vertex);
+}
+
+// Dijkstra's algorithm to find the shortest path from source to all vertices
+void dijkstra(struct Graph* graph, int source) {
+    int vertices = graph->vertices;
+    int dist[MAX_NODES];
+    int visited[MAX_NODES];
+    int parent[MAX_NODES];
+
+    for (int i = 0; i < vertices; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+        parent[i] = -1;
+    }
+
+    dist[source] = 0;
+
+    for (int count = 0; count < vertices - 1; count++) {
+        int u = minDistance(dist, visited, vertices);
+        visited[u] = 1;
+
+        for (int v = 0; v < vertices; v++) {
+            if (!visited[v] && graph->adjMatrix[u][v] && dist[u] != INT_MAX &&
+                dist[u] + graph->adjMatrix[u][v] < dist[v]) {
+                parent[v] = u;
+                dist[v] = dist[u] + graph->adjMatrix[u][v];
+            }
+        }
+    }
+
+    printf("Shortest paths from source vertex %d:\n", source);
+    for (int i = 0; i < vertices; i++) {
+        printf("To vertex %d: Distance = %d, Path = ", i, dist[i]);
+        printPath(parent, i);
+        printf("\n");
+    }
+}
+
+int main() {
+    int vertices, edges;
+    printf("Enter the number of vertices: ");
+    scanf("%d", &vertices);
+
+    struct Graph* graph = createGraph(vertices);
+
+    printf("Enter the number of edges: ");
+    scanf("%d", &edges);
+
+    printf("Enter the edges and their weights (format: source destination weight):\n");
+    for (int i = 0; i < edges; i++) {
+        int src, dest, weight;
+        scanf("%d %d %d", &src, &dest, &weight);
+        addEdge(graph, src, dest, weight);
+    }
+
+    int source;
+    printf("Enter the source vertex: ");
+    scanf("%d", &source);
+
+    dijkstra(graph, source);
+
+    return 0;
+}
