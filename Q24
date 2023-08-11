@@ -1,0 +1,108 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX_NODES 100
+
+struct Graph {
+    int vertices;
+    int** adjMatrix;
+};
+
+// Create a new graph with 'vertices' vertices
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->vertices = vertices;
+
+    // Allocate memory for adjacency matrix
+    graph->adjMatrix = (int**)malloc(vertices * sizeof(int*));
+    for (int i = 0; i < vertices; i++) {
+        graph->adjMatrix[i] = (int*)malloc(vertices * sizeof(int));
+        for (int j = 0; j < vertices; j++) {
+            graph->adjMatrix[i][j] = 0;
+        }
+    }
+
+    return graph;
+}
+
+// Add an edge between two vertices with weight
+void addEdge(struct Graph* graph, int src, int dest, int weight) {
+    graph->adjMatrix[src][dest] = weight;
+    graph->adjMatrix[dest][src] = weight;
+}
+
+// Find the vertex with the minimum key value
+int minKey(int key[], int mstSet[], int vertices) {
+    int min = INT_MAX;
+    int minIndex = -1;
+
+    for (int v = 0; v < vertices; v++) {
+        if (!mstSet[v] && key[v] < min) {
+            min = key[v];
+            minIndex = v;
+        }
+    }
+
+    return minIndex;
+}
+
+// Print the minimum spanning tree
+void printMST(int parent[], int n, int** graph) {
+    printf("Edge\tWeight\n");
+    for (int i = 1; i < n; i++) {
+        printf("%d - %d\t%d\n", parent[i], i, graph[i][parent[i]]);
+    }
+}
+
+// Prim's algorithm to find the minimum spanning tree
+void primMST(struct Graph* graph) {
+    int vertices = graph->vertices;
+    int parent[MAX_NODES];
+    int key[MAX_NODES];
+    int mstSet[MAX_NODES];
+
+    for (int i = 0; i < vertices; i++) {
+        key[i] = INT_MAX;
+        mstSet[i] = 0;
+    }
+
+    key[0] = 0;
+    parent[0] = -1;
+
+    for (int count = 0; count < vertices - 1; count++) {
+        int u = minKey(key, mstSet, vertices);
+        mstSet[u] = 1;
+
+        for (int v = 0; v < vertices; v++) {
+            if (graph->adjMatrix[u][v] && !mstSet[v] && graph->adjMatrix[u][v] < key[v]) {
+                parent[v] = u;
+                key[v] = graph->adjMatrix[u][v];
+            }
+        }
+    }
+
+    printMST(parent, vertices, graph->adjMatrix);
+}
+
+int main() {
+    int vertices, edges;
+    printf("Enter the number of vertices: ");
+    scanf("%d", &vertices);
+
+    struct Graph* graph = createGraph(vertices);
+
+    printf("Enter the number of edges: ");
+    scanf("%d", &edges);
+
+    printf("Enter the edges and their weights (format: source destination weight):\n");
+    for (int i = 0; i < edges; i++) {
+        int src, dest, weight;
+        scanf("%d %d %d", &src, &dest, &weight);
+        addEdge(graph, src, dest, weight);
+    }
+
+    primMST(graph);
+
+    return 0;
+}
